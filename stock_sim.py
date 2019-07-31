@@ -1,54 +1,74 @@
-import pygame
 import requests
 import json
 import pickle
-
-pygame.init()
-done = False
-clock = pygame.time.Clock()
-screen = pygame.display.set_mode((600, 600))
+import threading
 
 watchList = ["APPL", "MSFT", "AMZN"] #initial watchlist for first time loggin
+positions = {}
 
-
-def openPickle(): #reassigns watchList to data in pickle file
+def openWPickle(): #reassigns watchList to data in pickle file
     pickleIn = open("watchList.pickle", "rb")
     return pickle.load(pickleIn)
 
-def savePickle(x): #dumps pickle file with watList data
+def saveWPickle(x): #dumps pickle file with watList data
     pickleOut = open("watchList.pickle", "wb")
+    pickle.dump(x, pickleOut)
+    pickleOut.close()
+
+def openPPickle(): 
+    pickleIn = open("positions.pickle", "rb")
+    return pickle.load(pickleIn)
+
+def savePPickle(x): 
+    pickleOut = open("positions.pickle", "wb")
     pickle.dump(x, pickleOut)
     pickleOut.close()
 
 
 try: #opens a pickle file if there is one, creates one otherwize
-    watchList = openPickle()
-    print("opened pickle")
+    watchList = openWPickle()
+    print("opened W pickle")
 except (Exception) as e:
-    savePickle(watchList)
-    print("made a pickle")
+    saveWPickle(watchList)
+    print("made a W pickle")
+
+try: 
+    positions = openPPickle()
+    print("opened P pickle")
+except (Exception) as e:
+    savePPickle(watchList)
+    print("made a P pickle")
 
 
-print(watchList)
-
-while not done: 
-
-    pygame.display.set_caption('Stock Sim') 
-
-    for event in pygame.event.get(): 
-            if event.type == pygame.QUIT: 
-                savePickle(watchList)
-                done = True
-                    
-                    
+while True: 
+    print("Watch List: "+ str(watchList))
+    print("Positions: " + str(positions))
 
 
+    userInput = input("ADD/REMOVE/BUY/SELL: ").lower() #checking user input
+    if userInput == "add": 
+        watchList.append(input("TICKER: ").upper())
+        saveWPickle(watchList)
+    elif userInput == "remove": 
+        watchList.remove(input("TICKER: ").upper())
+        saveWPickle(watchList)
+    elif userInput == "buy": 
+        positions.update({input("TICKER: ").upper() : input("HOW MANY SHARES: ")})
+        savePPickle(positions)
+    elif userInput == "sell": 
+        del positions[input("TICKER: ").upper()]
+        savePPickle(positions)
+    elif userInput == "reset": 
+        watchList = []
+        positions = {}
+        saveWPickle(watchList)
+        savePPickle(positions)
+    else: 
+        print("Invalid command")
     
     
+                    
 
-    pygame.display.flip() 
-    screen.fill((0, 0, 0))
-    clock.tick(15)
 
 
 
