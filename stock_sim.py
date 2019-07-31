@@ -3,7 +3,7 @@ import json
 import pickle
 import threading
 
-watchList = ["APPL", "MSFT", "AMZN"] #initial watchlist for first time loggin
+watchList = {} #initial watchlist for first time loggin
 positions = {}
 
 def openWPickle(): #reassigns watchList to data in pickle file
@@ -27,17 +27,13 @@ def savePPickle(x):
 
 try: #opens a pickle file if there is one, creates one otherwize
     watchList = openWPickle()
-    print("opened W pickle")
 except (Exception) as e:
     saveWPickle(watchList)
-    print("made a W pickle")
 
 try: 
     positions = openPPickle()
-    print("opened P pickle")
 except (Exception) as e:
     savePPickle(watchList)
-    print("made a P pickle")
 
 
 while True: 
@@ -47,10 +43,10 @@ while True:
 
     userInput = input("ADD/REMOVE/BUY/SELL: ").lower() #checking user input
     if userInput == "add": 
-        watchList.append(input("TICKER: ").upper())
+        watchList.update({input("TICKER: ").upper() : 0})
         saveWPickle(watchList)
     elif userInput == "remove": 
-        watchList.remove(input("TICKER: ").upper())
+        del watchList[input("TICKER: ").upper()]
         saveWPickle(watchList)
     elif userInput == "buy": 
         positions.update({input("TICKER: ").upper() : input("HOW MANY SHARES: ")})
@@ -59,7 +55,7 @@ while True:
         del positions[input("TICKER: ").upper()]
         savePPickle(positions)
     elif userInput == "reset": 
-        watchList = []
+        watchList = {}
         positions = {}
         saveWPickle(watchList)
         savePPickle(positions)
