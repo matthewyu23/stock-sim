@@ -98,8 +98,8 @@ while True:
     print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
     print(bold("Watch List: ") + coloredWatchList)
     print(bold("Positions: ") + coloredPositionList)
-    print(bold("Invested: ") + str(round(money[0], 2)))
-    print(bold("Uninvested: ") + str(round(money[1], 2)) + "\n")
+    print(bold("Invested: ") + str(format(money[0], ".2f")))
+    print(bold("Uninvested: ") + str(format(money[1], ".2f")) + "\n")
 
 
     userInput = input("ADD/REMOVE/BUY/SELL: ").lower() #checking user input
