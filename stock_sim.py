@@ -87,7 +87,10 @@ while True:
     elif userInput == "buy": 
         toBuy = input("TICKER: ")
         numberOfSharesToBuy = input("HOW MANY SHARES: ")
-        transaction = float(numberOfSharesToBuy) * float(requests.get(f"https://cloud.iexapis.com/stable/stock/{toBuy.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["latestPrice"])
+        try: 
+            transaction = float(numberOfSharesToBuy) * float(requests.get(f"https://cloud.iexapis.com/stable/stock/{toBuy.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["latestPrice"])
+        except (Exception): 
+            continue
         if transaction <= money[1]: 
             money[1] = money [1] - transaction
             saveMPickle(money)
