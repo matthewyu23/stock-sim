@@ -1,6 +1,12 @@
 import requests
 import json
 import pickle
+import os
+try: 
+    import termcolor
+except (Exception): 
+    os.system("pip3 install termcolor")
+    import termcolor
 
 watchList = {} #initial watchlist for first time loggin
 positions = {}
@@ -63,15 +69,27 @@ def calculateInvested():
     money[0] = 0
     for x in list(positions): 
         if len(positions) > 0: 
-            x = x.lower()
-            money[0] = money[0] + float(positions[x.upper()]) * float(requests.get(f"https://cloud.iexapis.com/stable/stock/{x}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["latestPrice"])
+            money[0] = money[0] + float(positions[x.upper()]) * float(requests.get(f"https://cloud.iexapis.com/stable/stock/{x.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["latestPrice"])
+
+
+def coloredList(myList): 
+    listPrint = ""
+    for x in myList: 
+        tickerChange = requests.get(f"https://cloud.iexapis.com/stable/stock/{x.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["change"]
+        if tickerChange < 0: 
+            listPrint = listPrint + termcolor.colored(x + ": " + myList[x], "red") + ", "
+        else: 
+            listPrint = listPrint + termcolor.colored(x + ": " + myList[x], "green") + ", "
+    return listPrint[:len(listPrint)-2]
+
+
 while True: 
 
     print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
     updatePrices()
     calculateInvested()
-    print("Watch List: "+ str(watchList))
-    print("Positions: " + str(positions))
+    print("Watch List: " + coloredList(watchList))
+    print("Positions: " + coloredList(positions))
     print("Invested: " + str(round(money[0], 2)))
     print("Uninvested: " + str(round(money[1], 2)))
 
