@@ -57,7 +57,7 @@ except (Exception) as e:
 
 
 def updatePrices(): 
-    print("updating prices")
+    print("Updating prices...")
     for x in list(watchList): 
         del watchList[x]
         x = x.lower()
@@ -65,7 +65,7 @@ def updatePrices():
         watchList[x.upper()] = "$" + str(response.json()["latestPrice"]) 
 
 def calculateInvested(): 
-    print("updating wealth")
+    print("Updating wealth...")
     money[0] = 0
     for x in list(positions): 
         if len(positions) > 0: 
@@ -77,21 +77,29 @@ def coloredList(myList):
     for x in myList: 
         tickerChange = requests.get(f"https://cloud.iexapis.com/stable/stock/{x.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["change"]
         if tickerChange < 0: 
-            listPrint = listPrint + termcolor.colored(x + ": " + myList[x], "red") + ", "
+            listPrint = listPrint + termcolor.colored(x + ": " + myList[x] + " shares", "red") + ", "
         else: 
-            listPrint = listPrint + termcolor.colored(x + ": " + myList[x], "green") + ", "
+            if myList == positions: 
+                listPrint = listPrint + termcolor.colored(x + ": " + myList[x] + " shares", "green") + ", "
+            else: 
+                listPrint = listPrint + termcolor.colored(x + ": " + myList[x], "green") + ", "
     return listPrint[:len(listPrint)-2]
 
+def bold(x): 
+    return termcolor.colored(x, attrs=["bold"])
 
 while True: 
 
     print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
     updatePrices()
     calculateInvested()
-    print("Watch List: " + coloredList(watchList))
-    print("Positions: " + coloredList(positions))
-    print("Invested: " + str(round(money[0], 2)))
-    print("Uninvested: " + str(round(money[1], 2)))
+    coloredWatchList = coloredList(watchList)
+    coloredPositionList = coloredList(positions)
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    print(bold("Watch List: ") + coloredWatchList)
+    print(bold("Positions: ") + coloredPositionList)
+    print(bold("Invested: ") + str(round(money[0], 2)))
+    print(bold("Uninvested: ") + str(round(money[1], 2)) + "\n")
 
 
     userInput = input("ADD/REMOVE/BUY/SELL: ").lower() #checking user input
