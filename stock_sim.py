@@ -5,6 +5,7 @@ import threading
 
 watchList = {} #initial watchlist for first time loggin
 positions = {}
+wealth = []
 
 def openWPickle(): #reassigns watchList to data in pickle file
     pickleIn = open("watchList.pickle", "rb")
@@ -36,20 +37,34 @@ except (Exception) as e:
     savePPickle(watchList)
 
 
+def updatePrices(): 
+    print("updating prices")
+    for x in list(watchList): 
+        del watchList[x]
+        x = x.lower()
+        response = requests.get(f"https://cloud.iexapis.com/stable/stock/{x}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e")
+        watchList[x.upper()] = "$" + str(response.json()["latestPrice"]) 
+
 while True: 
+
+    
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    updatePrices()
     print("Watch List: "+ str(watchList))
     print("Positions: " + str(positions))
+    print("Wealth: " + wealth)
 
 
     userInput = input("ADD/REMOVE/BUY/SELL: ").lower() #checking user input
     if userInput == "add": 
         watchList.update({input("TICKER: ").upper() : 0})
         saveWPickle(watchList)
+        
     elif userInput == "remove": 
         del watchList[input("TICKER: ").upper()]
         saveWPickle(watchList)
     elif userInput == "buy": 
-        positions.update({input("TICKER: ").upper() : input("HOW MANY SHARES: ")})
+        positions.update({input("TICKER: ").upper() : input("HOW MANY SHARES: ") + " shares"})
         savePPickle(positions)
     elif userInput == "sell": 
         del positions[input("TICKER: ").upper()]
@@ -61,13 +76,3 @@ while True:
         savePPickle(positions)
     else: 
         print("Invalid command")
-    
-    
-                    
-
-
-
-
-#response = requests.get("https://cloud.iexapis.com/stable/stock/aapl/quote?token=pk_520e6bf649924304a029ffc1d880fd0e")
-
-#print(response.json())
