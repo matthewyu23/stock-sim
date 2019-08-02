@@ -66,11 +66,11 @@ def updatePrices():
         del watchList[x]
         x = x.lower()
         response = requests.get(f"https://cloud.iexapis.com/stable/stock/{x}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e") 
-        change = requests.get(f"https://cloud.iexapis.com/stable/stock/{x}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["change"]
+        change = requests.get(f"https://cloud.iexapis.com/stable/stock/{x}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["changePercent"]
         if change >= 0: 
-            change = "+" + format(change, ".2f")
+            change = "+" + format(change*100, ".2f")
         else: 
-            change = format(change, ".2f")
+            change = format(change*100, ".2f")
         watchList[x.upper()] = "$" + format(response.json()["latestPrice"], ".2f") + ", " + change + "%"
 
 def calculateInvested(): 
@@ -87,12 +87,20 @@ def coloredList(myList):
         tickerChange = requests.get(f"https://cloud.iexapis.com/stable/stock/{x.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["change"]
         if tickerChange < 0: 
             if myList == positions: 
-                listPrint = listPrint + termcolor.colored(x + ": " + str(myList[x]) + " shares", "red") + " | "
+                if myList[x] == "1": 
+                    share = " share"
+                else: 
+                    share = " shares"
+                listPrint = listPrint + termcolor.colored(x + ": " + str(myList[x]) + share, "red") + " | "
             else: 
                 listPrint = listPrint + termcolor.colored(x + ": " + str(myList[x]), "red") + " | "
         else: 
             if myList == positions: 
-                listPrint = listPrint + termcolor.colored(x + ": " + str(myList[x]) + " shares", "green") + " | "
+                if myList[x] == "1": 
+                    share = " share"
+                else: 
+                    share = " shares"
+                listPrint = listPrint + termcolor.colored(x + ": " + str(myList[x]) + share, "green") + " | "
             else: 
                 listPrint = listPrint + termcolor.colored(x + ": " + str(myList[x]), "green") + " | "
     return listPrint[:len(listPrint)-3]
