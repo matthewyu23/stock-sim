@@ -11,6 +11,9 @@ except (Exception):
 watchList = {} #initial watchlist for first time loggin
 positions = {}
 money = [0, 10000]
+inputError = False
+insufficientFunds = False
+insufficientShares = False
 
 def openWPickle(): #reassigns watchList to data in pickle file
     pickleIn = open("watchList.pickle", "rb")
@@ -77,7 +80,10 @@ def coloredList(myList):
     for x in myList: 
         tickerChange = requests.get(f"https://cloud.iexapis.com/stable/stock/{x.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["change"]
         if tickerChange < 0: 
-            listPrint = listPrint + termcolor.colored(x + ": " + myList[x] + " shares", "red") + ", "
+            if myList == positions: 
+                listPrint = listPrint + termcolor.colored(x + ": " + myList[x] + " shares", "red") + ", "
+            else: 
+                listPrint = listPrint + termcolor.colored(x + ": " + myList[x], "red") + ", "
         else: 
             if myList == positions: 
                 listPrint = listPrint + termcolor.colored(x + ": " + myList[x] + " shares", "green") + ", "
@@ -96,26 +102,48 @@ while True:
     coloredWatchList = coloredList(watchList)
     coloredPositionList = coloredList(positions)
     print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    if inputError: 
+        termcolor.cprint(" Input error ", "red" , attrs=['bold'])
+        inputError = False
+    if insufficientFunds: 
+        termcolor.cprint(" Insufficient funds ", "red" , attrs=['bold'])
+        insufficientFunds = False
+    if insufficientShares: 
+        termcolor.cprint(" Insufficient shares ", "red" , attrs=['bold'])
+        insufficientShares = False
     print(bold("Watch List: ") + coloredWatchList)
     print(bold("Positions: ") + coloredPositionList)
-    print(bold("Invested: ") + str(format(money[0], ".2f")))
-    print(bold("Uninvested: ") + str(format(money[1], ".2f")) + "\n")
+    print(bold("Invested: ") + str("$" + format(money[0], ".2f")))
+    print(bold("Uninvested: ") + str("$" + format(money[1], ".2f")) + "\n")
 
 
     userInput = input("ADD/REMOVE/BUY/SELL: ").lower() #checking user input
     if userInput == "add": 
-        watchList.update({input("TICKER: ").upper() : 0})
-        saveWPickle(watchList)
+        try: 
+            ticker = input("TICKER: ")
+            temp = requests.get(f"https://cloud.iexapis.com/stable/stock/{ticker.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["latestPrice"]
+            watchList.update({ticker.upper() : 0})
+            saveWPickle(watchList)
+        except (Exception): 
+            inputError = True
+            continue
         
     elif userInput == "remove": 
-        del watchList[input("TICKER: ").upper()]
-        saveWPickle(watchList)
+        try: 
+            ticker = input("TICKER: ")
+            temp = requests.get(f"https://cloud.iexapis.com/stable/stock/{ticker.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["latestPrice"]
+            del watchList[ticker.upper()]
+            saveWPickle(watchList)
+        except (Exception): 
+            inputError = True
+            continue
     elif userInput == "buy": 
         toBuy = input("TICKER: ")
         numberOfSharesToBuy = input("HOW MANY SHARES: ")
         try: 
             transaction = float(numberOfSharesToBuy) * float(requests.get(f"https://cloud.iexapis.com/stable/stock/{toBuy.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["latestPrice"])
         except (Exception): 
+            inputError = True
             continue
         if transaction <= money[1]: 
             money[1] = money [1] - transaction
@@ -126,6 +154,8 @@ while True:
             except (Exception): 
                 positions.update({toBuy.upper() : numberOfSharesToBuy})
                 savePPickle(positions)
+        else: 
+            insufficientFunds = True
     elif userInput == "sell": 
         toSell = input("TICKER: ")
         numberOfSharesToSell = input("Shares: ")
@@ -139,8 +169,11 @@ while True:
                 if positions[toSell.upper()] == "0": 
                     del positions[toSell.upper()]
                 savePPickle(positions)
+            else: 
+                insufficientShares = True
         except (Exception): 
-            print("You don't own this stock")
+            inputError = True
+            continue
     elif userInput == "reset": 
         watchList = {}
         positions = {}
@@ -149,4 +182,4 @@ while True:
         savePPickle(positions)
         saveMPickle(money)
     else: 
-        print("Invalid command")
+        inputError = True
