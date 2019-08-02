@@ -2,13 +2,14 @@ import requests
 import json
 import pickle
 import os
-try: 
+
+try: #installs termcolor module if absent
     import termcolor
 except (Exception): 
     os.system("pip3 install termcolor")
     import termcolor
 
-watchList = {} #initial watchlist for first time loggin
+watchList = {} 
 positions = {}
 money = [0, 10000]
 inputError = False
@@ -20,7 +21,7 @@ def openWPickle(): #reassigns watchList to data in pickle file
     pickleIn = open("watchList.pickle", "rb")
     return pickle.load(pickleIn)
 
-def saveWPickle(x): #dumps pickle file with watList data
+def saveWPickle(x): #dumps watchList data into pickle file
     pickleOut = open("watchList.pickle", "wb")
     pickle.dump(x, pickleOut)
     pickleOut.close()
@@ -60,7 +61,7 @@ except (Exception) as e:
     saveMPickle(money)
 
 
-def updatePrices(): 
+def updatePrices(): #updates prices in watchlist with api
     print("Updating prices...")
     for x in list(watchList): 
         del watchList[x]
@@ -73,7 +74,7 @@ def updatePrices():
             change = format(change*100, ".2f")
         watchList[x.upper()] = "$" + format(response.json()["latestPrice"], ".2f") + ", " + change + "%"
 
-def calculateInvested(): 
+def calculateInvested(): #number of shares * price per share (for all stocks in positions)
     print("Updating wealth...")
     money[0] = 0
     for x in list(positions): 
@@ -81,7 +82,7 @@ def calculateInvested():
             money[0] = money[0] + float(positions[x.upper()]) * float(requests.get(f"https://cloud.iexapis.com/stable/stock/{x.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["latestPrice"])
 
 
-def coloredList(myList): 
+def coloredList(myList): #puts color on the list passed in as parameter
     listPrint = ""
     for x in myList: 
         tickerChange = requests.get(f"https://cloud.iexapis.com/stable/stock/{x.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["change"]
@@ -109,7 +110,7 @@ def bold(x):
     return termcolor.colored(x, attrs=["bold"])
 
 while True: 
-    if not (inputError or insufficientFunds or insufficientShares) or forceRefresh == True: 
+    if not (inputError or insufficientFunds or insufficientShares) or forceRefresh == True: #Error handling
         print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
         updatePrices()
         calculateInvested()
@@ -126,7 +127,9 @@ while True:
     if insufficientShares: 
         termcolor.cprint("Insufficient shares", "red" , attrs=["bold", "underline"])
         insufficientShares = False
-    print(bold("Watch List: ") + coloredWatchList)
+        
+        
+    print(bold("Watch List: ") + coloredWatchList) #printing out the data
     print(bold("Positions: ") + coloredPositionList)
     print(bold("Invested: ") + str("$" + format(money[0], ".2f")))
     print(bold("Cash: ") + str("$" + format(money[1], ".2f")))
@@ -140,8 +143,9 @@ while True:
         coloredNet = termcolor.colored(net, "green")
     print(bold("Net: ") +  coloredNet)
 
+
     userInput = input("\nADD/REMOVE/BUY/SELL/REFRESH: ").lower() #checking user input
-    if userInput == "add": 
+    if userInput == "add": #adding to watchlist
         try: 
             ticker = input("TICKER: ")
             temp = requests.get(f"https://cloud.iexapis.com/stable/stock/{ticker.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["latestPrice"]
@@ -151,7 +155,7 @@ while True:
             inputError = True
             continue
         
-    elif userInput == "remove": 
+    elif userInput == "remove": #removing from watchlist
         try: 
             ticker = input("TICKER: ")
             temp = requests.get(f"https://cloud.iexapis.com/stable/stock/{ticker.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["latestPrice"]
@@ -160,7 +164,7 @@ while True:
         except (Exception): 
             inputError = True
             continue
-    elif userInput == "buy": 
+    elif userInput == "buy": #buying a stock
         toBuy = input("TICKER: ")
         numberOfSharesToBuy = input("HOW MANY SHARES: ")
         try: 
@@ -179,7 +183,7 @@ while True:
                 savePPickle(positions)
         else: 
             insufficientFunds = True
-    elif userInput == "sell": 
+    elif userInput == "sell": #selling a stock
         toSell = input("TICKER: ")
         numberOfSharesToSell = input("Shares: ")
         try: 
@@ -197,14 +201,14 @@ while True:
         except (Exception): 
             inputError = True
             continue
-    elif userInput == "reset": 
+    elif userInput == "reset": #reset portfolio
         watchList = {}
         positions = {}
         money = [0, 10000]
         saveWPickle(watchList)
         savePPickle(positions)
         saveMPickle(money)
-    elif userInput == "refresh": 
+    elif userInput == "refresh": #refresh with new stock data
         forceRefresh = True
     else: 
         inputError = True
