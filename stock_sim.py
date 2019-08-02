@@ -14,6 +14,7 @@ money = [0, 10000]
 inputError = False
 insufficientFunds = False
 insufficientShares = False
+forceRefresh = False
 
 def openWPickle(): #reassigns watchList to data in pickle file
     pickleIn = open("watchList.pickle", "rb")
@@ -64,8 +65,13 @@ def updatePrices():
     for x in list(watchList): 
         del watchList[x]
         x = x.lower()
-        response = requests.get(f"https://cloud.iexapis.com/stable/stock/{x}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e")
-        watchList[x.upper()] = "$" + str(response.json()["latestPrice"]) 
+        response = requests.get(f"https://cloud.iexapis.com/stable/stock/{x}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e") 
+        change = requests.get(f"https://cloud.iexapis.com/stable/stock/{x}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["change"]
+        if change >= 0: 
+            change = "+" + format(change, ".2f")
+        else: 
+            change = format(change, ".2f")
+        watchList[x.upper()] = "$" + format(response.json()["latestPrice"], ".2f") + ", " + change + "%"
 
 def calculateInvested(): 
     print("Updating wealth...")
@@ -81,43 +87,52 @@ def coloredList(myList):
         tickerChange = requests.get(f"https://cloud.iexapis.com/stable/stock/{x.lower()}/quote?token=pk_520e6bf649924304a029ffc1d880fd0e").json()["change"]
         if tickerChange < 0: 
             if myList == positions: 
-                listPrint = listPrint + termcolor.colored(x + ": " + myList[x] + " shares", "red") + ", "
+                listPrint = listPrint + termcolor.colored(x + ": " + str(myList[x]) + " shares", "red") + " | "
             else: 
-                listPrint = listPrint + termcolor.colored(x + ": " + myList[x], "red") + ", "
+                listPrint = listPrint + termcolor.colored(x + ": " + str(myList[x]), "red") + " | "
         else: 
             if myList == positions: 
-                listPrint = listPrint + termcolor.colored(x + ": " + myList[x] + " shares", "green") + ", "
+                listPrint = listPrint + termcolor.colored(x + ": " + str(myList[x]) + " shares", "green") + " | "
             else: 
-                listPrint = listPrint + termcolor.colored(x + ": " + myList[x], "green") + ", "
-    return listPrint[:len(listPrint)-2]
+                listPrint = listPrint + termcolor.colored(x + ": " + str(myList[x]), "green") + " | "
+    return listPrint[:len(listPrint)-3]
 
 def bold(x): 
     return termcolor.colored(x, attrs=["bold"])
 
 while True: 
-
-    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-    updatePrices()
-    calculateInvested()
+    if not (inputError or insufficientFunds or insufficientShares) or forceRefresh == True: 
+        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        updatePrices()
+        calculateInvested()
+        forceRefresh = False
     coloredWatchList = coloredList(watchList)
     coloredPositionList = coloredList(positions)
     print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
     if inputError: 
-        termcolor.cprint(" Input error ", "red" , attrs=['bold'])
+        termcolor.cprint("Input error", "red" , attrs=["bold", "underline"])
         inputError = False
     if insufficientFunds: 
-        termcolor.cprint(" Insufficient funds ", "red" , attrs=['bold'])
+        termcolor.cprint("Insufficient funds", "red" , attrs=["bold", "underline"])
         insufficientFunds = False
     if insufficientShares: 
-        termcolor.cprint(" Insufficient shares ", "red" , attrs=['bold'])
+        termcolor.cprint("Insufficient shares", "red" , attrs=["bold", "underline"])
         insufficientShares = False
     print(bold("Watch List: ") + coloredWatchList)
     print(bold("Positions: ") + coloredPositionList)
     print(bold("Invested: ") + str("$" + format(money[0], ".2f")))
-    print(bold("Uninvested: ") + str("$" + format(money[1], ".2f")) + "\n")
+    print(bold("Cash: ") + str("$" + format(money[1], ".2f")))
+    net = ((money[0] + money [1])/10000) - 1
+    if net < 0: 
+        net = format(net, ".2f")
+        net = net  + "%"
+        coloredNet = termcolor.colored(net, "red")
+    else: 
+        net = "+" + format(net, ".2f") + "%"
+        coloredNet = termcolor.colored(net, "green")
+    print(bold("Net: ") +  coloredNet)
 
-
-    userInput = input("ADD/REMOVE/BUY/SELL: ").lower() #checking user input
+    userInput = input("\nADD/REMOVE/BUY/SELL/REFRESH: ").lower() #checking user input
     if userInput == "add": 
         try: 
             ticker = input("TICKER: ")
@@ -181,5 +196,7 @@ while True:
         saveWPickle(watchList)
         savePPickle(positions)
         saveMPickle(money)
+    elif userInput == "refresh": 
+        forceRefresh = True
     else: 
         inputError = True
